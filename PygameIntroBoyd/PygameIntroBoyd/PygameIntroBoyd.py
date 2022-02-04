@@ -1,4 +1,5 @@
 import pygame
+import Constants
 from pygame.locals import *
 
 # Import Assets
@@ -7,7 +8,7 @@ from Player import Player
 
 ## Initialize and set window
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT))
 x = 100
 y = 100
 
@@ -26,11 +27,11 @@ while True:
 			quit()
 	
 	## Update cornflower screen and regularly update the player's position and design
-	screen.fill((100,149,237))
+	screen.fill(Constants.BACKGROUND_COLOR)
 	Player.update()
 	Player.draw(screen)
 
 
 	## Flip screen and keep game at 60 frames a second
 	pygame.display.flip()
-	clock.tick(60)
+	clock.tick(Constants.FRAME_RATE)

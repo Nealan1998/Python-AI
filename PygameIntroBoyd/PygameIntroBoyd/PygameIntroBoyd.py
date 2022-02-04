@@ -5,6 +5,7 @@ from pygame.locals import *
 # Import Assets
 from Vector import Vector
 from Player import Player
+from Enemy import Enemy
 
 ## Initialize and set window
 pygame.init()
@@ -13,8 +14,10 @@ x = 100
 y = 100
 
 # Set the player with a position
-Player = Player(Vector(100, 100), Vector(0,0), 25)
+Player = Player(Constants.SCREEN_SIZE.scale(1/2), Constants.PLAYER_SPEED, Constants.PLAYER_SIZE, Constants.PLAYER_COLOR)
 
+# Set player
+Enemy = Enemy(Vector(100, 100), Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
 # Set clock to use constant frames per second
 clock = pygame.time.Clock()
 
@@ -30,7 +33,9 @@ while True:
 	screen.fill(Constants.BACKGROUND_COLOR)
 	Player.update()
 	Player.draw(screen)
-
+	Enemy.update()
+	Enemy.draw(screen)
+	#print(Player)
 
 	## Flip screen and keep game at 60 frames a second
 	pygame.display.flip()

@@ -43,7 +43,7 @@ while hasQuit == False:
 	
 	## Update all enemies in list
 	for shaun in shaunAndFriends:
-		shaun.update(screen, hankTheCowdog)
+		shaun.update(screen, hankTheCowdog, clock)
 		shaun.draw(screen)
 	
 	## Flip buffers and keep game at 60 frames a second

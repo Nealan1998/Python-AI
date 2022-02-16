@@ -18,6 +18,10 @@ class Agent:
         self.angle =0
         self.upperLeft = Vector(0,0)
         self.surf = None
+        self.boundryForces = Vector(0, 0)
+        self.boundryList = []
+        self.weightToUse = 1
+        self.currentDirection =  Vector(0,0)
 
     def __str__(self):
         # Override string
@@ -32,31 +36,32 @@ class Agent:
 
     def updateCenter(self):
         # Find the center of the object
-        #self.center = self.position + Vector(1,1).scale((self.size)/2)
         self.center = self.position + Vector((self.size / 2),(self.size /2))
 
     def isInCollision(self, agent):
         # Check if self is colliding with another agent
         if (agent.rect != None):
-            return pygame.Rect.colliderect(self.rect, agent.rect)
+            return pygame.Rect.colliderect(self.boundingRect, agent.boundingRect)
         else:
             return False
 
-    def update(self, bounds):
+    def update(self, bounds, clock):
 
+        # Debug for no surface
         if self.surf != None:
             self.boundingRect = self.surf.get_bounding_rect()
             self.boundingRect = self.boundingRect.move(self.center.x - Constants.AGENT_WIDTH /2, self.center.y - Constants.AGENT_HEIGHT /2)
-        # Do not let the agent move outside of the world bounds
-        if self.position.x <= 10: self.position.x = 10
-        if self.position.x >= Constants.WORLD_WIDTH: self.position.x = Constants.WORLD_WIDTH - 10
-        if self.position.y <= 10: self.position.y = 10
-        if self.position.y >= Constants.WORLD_HEIGHT: self.position.y = Constants.WORLD_HEIGHT -10
 
-        # Update position
-        self.position += self.velocity.scale(self.speed)
+        # Add direction force and boundry force
+        self.getBorderForce()
+        self.direction = self.modifyForce(self.direction, self.weightToUse)
+        self.boundryForces = self.modifyForce(self.boundryForces, Constants.BOUNDRY_WEIGHT)
+        targetDirection = self.direction + self.boundryForces
+        if clock.get_time() != 0:
+            targetDirection = targetDirection.scale(clock.get_time() / 100)
+        targetDirection = targetDirection.scale(self.speed)
 
-        #self.updateRect()
+        self.finalPosition(targetDirection)
         self.updateCenter()
 
     def draw(self, screen):
@@ -68,9 +73,65 @@ class Agent:
         self.angle = math.degrees(self.angle)
         self.surf = pygame.transform.rotate(self.image, self.angle)
         upperLeft = Vector((self.center.x - self.surf.get_width() / 2), (self.center.y - self.surf.get_height() /2))
-        # Draw a square at the new position
         screen.blit(self.surf, [upperLeft.x, upperLeft.y])
 
-        # Draw a line showing the expected velocity
-        pygame.draw.line(screen, (0,0,255), self.center.tuple() ,(self.center + self.velocity.scale(50)).tuple(),3 )
+        # Draw a line showing the expected velocity Blue
+        pygame.draw.line(screen, (0,0,255), self.center.tuple() ,(self.center + self.velocity.scale(20)).tuple(),3 )
+
+        # Draw each boundry force line Fuchia
+        for force in self.boundryList:
+            pygame.draw.line(screen, (255, 0, 255), self.center.tuple(), force.tuple(), 3)
+    
+    def modifyForce(self, appliedForce, weight):
+        # modify force
+        appliedForce = appliedForce.normalize()
+        appliedForce = appliedForce.scale(weight)
+        appliedForce = appliedForce.scale(self.speed)
+        return appliedForce
+
+    def getBorderForce(self):
+         # Do not let the agent move outside of the world bounds
+        self.boundryList = []
+        xForce = 0
+        yForce = 0
+        # Set boundries for left side
+        if self.position.x <= Constants.BOUNDRY_RADIUS:
+            self.boundryList.append(Vector(self.center.x  - Constants.BOUNDRY_RADIUS, self.center.y))
+            xForce = Constants.BOUNDRY_RADIUS - self.position.x
+        # Set Boundries for right side
+        if self.position.x >= Constants.WORLD_WIDTH - Constants.BOUNDRY_RADIUS:
+            self.boundryList.append(Vector(self.center.x + Constants.BOUNDRY_RADIUS, self.center.y))
+            xForce = Constants.WORLD_WIDTH - Constants.BOUNDRY_RADIUS - self.position.x
+        # Set Boundries for top side
+        if self.position.y <= Constants.BOUNDRY_RADIUS: 
+            self.boundryList.append(Vector(self.center.x, self.center.y - Constants.BOUNDRY_RADIUS))
+            yForce = Constants.BOUNDRY_RADIUS - self.position.y
+        # Set Boundries for bottom side
+        if self.position.y >= Constants.WORLD_HEIGHT - Constants.BOUNDRY_RADIUS: 
+            self.boundryList.append(Vector(self.center.x, self.center.y + Constants.BOUNDRY_RADIUS))
+            yForce = Constants.WORLD_HEIGHT - Constants.BOUNDRY_RADIUS - self.position.y
+
+        self.boundryForces = Vector(xForce, yForce)
+
+    def finalPosition(self, targetDirection):
+        # Determine rotation
+        difference = targetDirection.normalize() - self.direction.normalize()
+        #
+        if difference.length() < self.turningSpeed:
+            self.velocity = targetDirection
+        else:
+            difference = difference.normalize()
+            difference = difference.scale(self.turningSpeed)
+            self.direction += difference
+            self.velocity = self.direction.normalize()
         
+        # Set position and modify as last resort
+        self.position += self.velocity
+        if self.position.x < 0:
+            self.position.x = 0
+        if self.position.x > Constants.WORLD_WIDTH:
+            self.position.x = Constants.WORLD_WIDTH
+        if self.position.y < 0:
+            self.position.y = 0
+        if self.position.y > Constants.WORLD_HEIGHT:
+            self.position.y = Constants.WORLD_HEIGHT

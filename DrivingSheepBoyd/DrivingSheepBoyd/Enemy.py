@@ -11,6 +11,9 @@ class Enemy(Agent):
         self.velocity = Vector(random.uniform(-1,1),random.uniform(-1,1))
         self.isFleeing = False
         self.target = Vector(0,0)
+        self.direction = self.velocity.normalize()
+        self.weightToUse = Constants.ENEMEY_WANDER_WEIGHT
+        self.turningSpeed = Constants.ENEMY_TURN_SPEED
 
     def switchMode():
         if self.isFleeing == True:
@@ -33,21 +36,24 @@ class Enemy(Agent):
     def calcTrackingVelocity(self, newTarget):
         self.target = newTarget
 
-    def update(self, bounds, player):
-        #self.calcTrackingVelocity(player.position)
-        #self.isPlayerClose()
+    def update(self, bounds, player, clock):
+        # Find player
+        self.target = player.position
+        self.isPlayerClose()
+        # Fleeing behavior
         if self.isFleeing == True:
-            playerDirection = self.position - self.target
-            super().updateVelocity(playerDirection)
+            self.direction = self.position - self.target
+        # Wandering behavior
         else:
             velPerp = Vector((self.velocity.y * -1), self.velocity.x).scale(.1)
             velPerp = velPerp.scale(random.uniform(-1,1))
-            direction = self.velocity + velPerp
-            super().updateVelocity(direction)
-        super().update(bounds)
+            self.direction = self.velocity + velPerp
+        super().update(bounds, clock)
 
     def draw(self, screen):
         if self.isFleeing == True:
-            # Draw a line to the player / tagged enemy
-            pygame.draw.line(screen, (255,0,0), self.center.tuple() ,self.target.center.tuple(),3 )
+            # Draw a line to the player in red
+            pygame.draw.line(screen, (255,0,0), self.center.tuple() ,self.target.tuple(),3 )
         super().draw(screen)
+
+    

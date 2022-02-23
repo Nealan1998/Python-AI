@@ -8,13 +8,12 @@ class Sheep(Agent):
     
     def __init__(self, position, size, speed, image, turnSpeed):
         super().__init__(position, size, speed, image, turnSpeed)
-        self.velocity = Vector(random.uniform(-1,1),random.uniform(-1,1))
-        self.maxSpeed = speed
-        self.isFleeing = False
-        self.target = Vector(0,0)
-        self.direction = self.velocity.normalize()
-        self.weightToUse = Constants.SHEEP_WANDER_WEIGHT
-        self.turningSpeed = Constants.SHEEP_TURN_SPEED
+        #self.velocity = Vector(random.uniform(-1,1),random.uniform(-1,1))
+        #self.isFleeing = False
+        #self.target = Vector(0,0)
+        #self.direction = self.velocity.normalize()
+        #self.weightToUse = Constants.SHEEP_WANDER_WEIGHT
+        #self.turningSpeed = Constants.SHEEP_TURN_SPEED
 
     def switchMode():
         if self.isFleeing == True:
@@ -31,7 +30,7 @@ class Sheep(Agent):
 
         for sheep in herd:
             if  sheep is not self:
-                if(self.center - sheep.position).length() < 40:
+                if(self.center - sheep.position).length() < Constants.SHEEP_NEIGHBOR_RADIUS:
                     self.neighborAmount += 1
                     self.neighborhood += [sheep]
     
@@ -60,6 +59,49 @@ class Sheep(Agent):
 
         return cohesion
 
+    def calculateSeperation(self, herd):
+        seperation = Vector(0,0)
+
+        for sheep in self.neighborhood:
+            seperation += self.center - sheep.position
+
+        if self.neighborAmount == 0:
+            return seperation
+        else:
+            return seperation.scale(1 / self.neighborAmount)
+
+    def calculatePlayerFlee(self, player):
+        newVector = self.center - player.center
+        self.target = player
+        if newVector.length() < Constants.MIN_ATTACK_DIST:
+            self.isFleeing = True
+            return newVector
+        else:
+            self.isFleeing = False
+        return Vector(0,0)
+
+    def calculateBoundaries(self, bounds):
+        boundsStrength = Vector(0,0)
+        self.boundaries = []
+
+        # Calculate x bounds
+        if self.center.x < Constants.BOUNDRY_RADIUS:
+            boundsStrength -= Vector(0 - self.center.x, 0)
+            self.boundaries += [Vector(0, self.center.y)]
+        if self.center.x > bounds.x - Constants.BOUNDRY_RADIUS:
+            boundsStrength -= Vector(bounds.x - self.center.x, 0)
+            self.boundaries += [Vector(bounds.x, self.center.y)]
+
+        # Calculate y bounds
+        if self.center.y < Constants.BOUNDRY_RADIUS:
+            boundsStrength -= Vector(0, 0 - self.center.y)
+            self.boundaries += [Vector(self.center.x, 0)]
+        if self.center.y > bounds.y - Constants.BOUNDRY_RADIUS:
+            boundsStrength -= Vector(0, bounds.y - self.center.y)
+            self.boundaries += [Vector(self.center.x, bounds.y)]
+
+        return boundsStrength
+
     def isPlayerClose(self):
         # Check if the player is within distance
         playerDirection = self.position - self.target
@@ -79,19 +121,31 @@ class Sheep(Agent):
         
         self.calculateNeighborhood(herd)
 
+
+        dogStrength = self.calculatePlayerFlee(player)
+        dogStrength = dogStrength.normalize()
+
+        boundaryStrength = self.calculateBoundaries(bounds)
+        boundaryStrength = boundaryStrength.normalize()
+
         alignment = self.calculateAlignment(herd)
         alignment = alignment.normalize()
 
         cohesion = self.calculateCohesion(herd)
         cohesion = cohesion.normalize()
 
-        direction = alignment.scale(Constants.SHEEP_ALIGNMENT_WEIGHT) + cohesion.scale(Constants.SHEEP_COHESION_WEIGHT)
+        seperation = self.calculateSeperation(herd)
+        seperation = seperation.normalize()
+
+
+        direction = dogStrength.scale(Constants.SHEEP_DOG_WEIGHT * Constants.ENABLE_DOG) + boundaryStrength.scale(Constants.SHEEP_BOUNDARY_WEIGHT * Constants.ENABLE_BOUNDARIES) \
+            + alignment.scale(Constants.SHEEP_ALIGNMENT_WEIGHT * Constants.ENABLE_ALIGNMENT) + cohesion.scale(Constants.SHEEP_COHESION_WEIGHT * Constants.ENABLE_COHESION) \
+            + seperation.scale(Constants.SHEEP_SEPERATION_WEIGHT * Constants.ENABLE_SEPARATION)
         
-        if abs(direction.x) < 0.001 and abs(direction.y) < 0.001:
-            self.speed = 0
-        else: 
-            self.updateVelocity(direction)
-            self.speed = self.maxSpeed
+        direction = direction.normalize()
+        self.updateVelocity(direction)
+        self.speed = self.maximumSpeed
+        
         # Find player
         #self.target = player.position
         #self.isPlayerClose()
@@ -103,12 +157,24 @@ class Sheep(Agent):
         #    velPerp = Vector((self.velocity.y * -1), self.velocity.x).scale(.1)
         #    velPerp = velPerp.scale(random.uniform(-1,1))
         #    self.direction = self.velocity + velPerp
-        super().update(bounds, clock)
+        super().update(bounds, clock, [player] + [herd])
 
     def draw(self, screen):
-        if self.isFleeing == True:
+        if self.isFleeing == True and Constants.DEBUG_DOG_INFLUENCE:
             # Draw a line to the player in red
-            pygame.draw.line(screen, (0,255,0), self.center.tuple() ,self.target.tuple(),1 )
+            pygame.draw.line(screen, (255, 0, 0), (self.center.x, self.center.y),
+                             (self.target.center.x, self.target.center.y), Constants.DEBUG_LINE_WIDTH)
+            #pygame.draw.line(screen, (0,255,0), self.center.tuple() ,self.target.tuple(),1 )
+
+        if Constants.DEBUG_NEIGHBORS:
+            for sheep in self.neighborhood:
+                pygame.draw.line(screen, (0,0,255), (self.center.x, self.center.y),
+                                 (sheep.center.x, sheep.center.y), Constants.DEBUG_LINE_WIDTH)
+
+        if Constants.DEBUG_BOUNDARIES:
+            for boundary in self.boundaries:
+                pygame.draw.line(screen, (255, 0, 255), (self.center.x, self.center.y),
+                                 (boundary.x, boundary.y), Constants.DEBUG_LINE_WIDTH)
         super().draw(screen)
 
     

@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
 hasQuit = False
 x = 100
 y = 100
-
+bounds = Vector(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
 # Set the player with a position
 hankTheCowdog = Player(Constants.SCREEN_SIZE.scale(1/2), Constants.PLAYER_SIZE, Constants.PLAYER_SPEED, dogImage, Constants.PLAYER_TURN_SPEED)
 
@@ -88,7 +88,7 @@ def handleDebugging():
 
 while hasQuit == False:
 	handleDebugging();
-    
+
     ## Searches for events
 	for event in pygame.event.get():
 		## If quit event takes place, quit game
@@ -97,12 +97,12 @@ while hasQuit == False:
 	
 	## Update cornflower screen and regularly update the player's position and design
 	screen.fill(Constants.BACKGROUND_COLOR)
-	hankTheCowdog.update(screen, shaunAndFriends, clock)
+	hankTheCowdog.update(bounds, shaunAndFriends, clock)
 	hankTheCowdog.draw(screen)
 	
 	## Update all enemies in list
 	for shaun in shaunAndFriends:
-		shaun.update(screen, hankTheCowdog, clock, shaunAndFriends)
+		shaun.update(bounds, hankTheCowdog, clock, shaunAndFriends)
 		shaun.draw(screen)
 	
 	## Flip buffers and keep game at 60 frames a second

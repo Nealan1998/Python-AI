@@ -25,7 +25,7 @@ class Player(Agent):
         if test == True:
            self.targetAgent = None
         # Call update
-        super().update(bounds, clock)
+        super().update(bounds, clock, [self] + [shaunAndFriends])
 
     def draw(self, screen):
         pygame.draw.line(screen, (255,0,0), self.center.tuple() ,self.target.tuple(),3 )

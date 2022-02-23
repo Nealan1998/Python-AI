@@ -1,5 +1,6 @@
 import pygame
 import Constants
+import random
 import math
 from Vector import Vector
 
@@ -8,21 +9,24 @@ class Agent:
     def __init__(self, position, size, speed, image, turnSpeed):
         self.position = position
         self.size = size
-        self.speed = speed
+        self.maximumSpeed = speed
+        self.speed = 0
         self.image = image
         self.turnSpeed = turnSpeed
-        self.velocity = Vector(0,0)
+        self.velocity = Vector(random.random() - 0.5, random.random() - .5).normalize()
         self.target = Vector(0,0)
+        self.targetVelocity = self.velocity
         self.boundingRect = pygame.Rect(0,0,0,0)
-        self.updateRect()
-        self.updateCenter()
+        #self.updateRect()
+        self.center = position + size.scale(0.5)
         self.angle =0
-        self.upperLeft = Vector(0,0)
-        self.surf = None
-        self.boundryForces = Vector(0, 0)
-        self.boundryList = []
-        self.weightToUse = 1
-        self.currentDirection =  Vector(0,0)
+        self.upperLeft = position
+        self.calculateSurface()
+        #self.surf = None
+        #self.boundryForces = Vector(0, 0)
+        #self.boundryList = []
+        #self.weightToUse = 1
+        #self.currentDirection =  Vector(0,0)
 
     def __str__(self):
         # Override string
@@ -50,24 +54,31 @@ class Agent:
     def updateRect(self):
         self.rect = self.boundingRect
 
-    def updateCenter(self):
-        # Find the center of the object
-        self.center = self.position + Vector((self.size / 2),(self.size /2))
+    #def updateCenter(self):
+    #    # Find the center of the object
+    #    self.center = self.position + Vector((self.size / 2),(self.size /2))
 
     def isInCollision(self, agent):
         # Check if self is colliding with another agent
-        if (agent.rect != None):
-            return pygame.Rect.colliderect(self.boundingRect, agent.boundingRect)
+        if self.boundingRect.colliderect(agent.boundingRect):
+            return True
         else:
             return False
 
-    def update(self, bounds, clock):
+    def update(self, bounds, clock, Agents):
         self.moveTowardsTarget()
         self.center = self.center + self.velocity.scale(self.speed)
         
+
+
         self.center.x = max(self.boundingRect.width * .5, min(self.center.x,  bounds.x - self.boundingRect.width * .5))
         self.center.y = max(self.boundingRect.height * .5, min(self.center.y, bounds.y - self.boundingRect.height * .5))
+
+        
+
         self.calculateSurface()
+
+        
         ## Debug for no surface
         #if self.surf != None:
         #    self.boundingRect = self.surf.get_bounding_rect()
@@ -86,23 +97,26 @@ class Agent:
         #self.updateCenter()
 
     def draw(self, screen):
-        if(self.surf != None):
-            pygame.draw.rect(screen, (0, 0, 0), self.boundingRect, 2)
+        
 
         # Draw Image
-        self.angle = math.atan2(-self.velocity.x, -self.velocity.y)
-        self.angle = math.degrees(self.angle)
-        self.surf = pygame.transform.rotate(self.image, self.angle)
-        upperLeft = Vector((self.center.x - self.surf.get_width() / 2), (self.center.y - self.surf.get_height() /2))
-        screen.blit(self.surf, [upperLeft.x, upperLeft.y])
+        #self.angle = math.atan2(-self.velocity.x, -self.velocity.y)
+        self.angle = math.degrees(math.atan2(-self.velocity.y, self.velocity.x)) - 90
+        #self.surf = pygame.transform.rotate(self.image, self.angle)
+        #upperLeft = Vector((self.center.x - self.surf.get_width() / 2), (self.center.y - self.surf.get_height() /2))
+        screen.blit(self.surf, [self.upperLeft.x, self.upperLeft.y])
+
+
+        if Constants.DEBUG_BOUNDING_RECTS:
+            pygame.draw.rect(screen,(0,0,0), self.boundingRect, Constants.DEBUG_LINE_WIDTH)
 
         if Constants.DEBUG_VELOCITY:
         # Draw a line showing the expected velocity Blue
-            pygame.draw.line(screen, (0,0,255), self.center.tuple() ,(self.center + self.velocity.scale(20)).tuple(),Constants.DEBUG_LINE_WIDTH )
+            pygame.draw.line(screen, (0,255, 0), self.center.tuple() ,(self.center + self.velocity.scale(20)).tuple(),Constants.DEBUG_LINE_WIDTH )
 
         # Draw each boundry force line Fuchia
-        for force in self.boundryList:
-            pygame.draw.line(screen, (255, 0, 255), self.center.tuple(), force.tuple(), 3)
+        #for force in self.boundryList:
+        #    pygame.draw.line(screen, (255, 0, 255), self.center.tuple(), force.tuple(), 3)
     
     def modifyForce(self, appliedForce, weight):
         # modify force

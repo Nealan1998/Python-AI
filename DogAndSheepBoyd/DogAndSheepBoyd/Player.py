@@ -7,8 +7,8 @@ from Agent import Agent
 
 class Player(Agent):
 
-    def __init__(self, position, size, speed, image):
-        super().__init__(position, size, speed, image)
+    def __init__(self, position, size, speed, image, turnSpeed):
+        super().__init__(position, size, speed, image, turnSpeed)
         self.targetAgent = None
         self.direction = Vector(0,0)
         self.weightToUse = Constants.PLAYER_WEIGHT

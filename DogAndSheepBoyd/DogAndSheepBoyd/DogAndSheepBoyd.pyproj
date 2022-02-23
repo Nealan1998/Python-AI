@@ -21,7 +21,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Agent.py" />
+    <Compile Include="Constants.py" />
     <Compile Include="DogAndSheepBoyd.py" />
+    <Compile Include="Sheep.py" />
+    <Compile Include="Player.py" />
+    <Compile Include="Vector.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

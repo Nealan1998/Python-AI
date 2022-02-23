@@ -21,7 +21,7 @@ class Enemy:
 				   pygame.Rect(self.position.x, self.position.y, self.size, self.size))
         
         # Drawl a line showing the expected velocity
-        pygame.draw.line(screen, (0,0,255), self.center.tuple() ,(self.center + self.velocity.scale(1)).tuple(),3 )
+        pygame.draw.line(screen, (0,255,0), self.center.tuple() ,(self.center + self.velocity.scale(1)).tuple(),3 )
     
     def update(self):
         # Get key input from user]

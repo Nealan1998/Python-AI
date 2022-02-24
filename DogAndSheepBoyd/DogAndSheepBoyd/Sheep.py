@@ -8,12 +8,6 @@ class Sheep(Agent):
     
     def __init__(self, position, size, speed, image, turnSpeed):
         super().__init__(position, size, speed, image, turnSpeed)
-        #self.velocity = Vector(random.uniform(-1,1),random.uniform(-1,1))
-        #self.isFleeing = False
-        #self.target = Vector(0,0)
-        #self.direction = self.velocity.normalize()
-        #self.weightToUse = Constants.SHEEP_WANDER_WEIGHT
-        #self.turningSpeed = Constants.SHEEP_TURN_SPEED
 
     def switchMode():
         if self.isFleeing == True:
@@ -23,11 +17,12 @@ class Sheep(Agent):
 
 
     def calculateNeighborhood(self, herd):
-        # Calculate the neighborhood
+        # Map the neighborhood
         self.neighborAmount = 0
         self.neighborhood = []
         self.boundaries = []
 
+        # Add sheep to neighborhood
         for sheep in herd:
             if  sheep is not self:
                 if(self.center - sheep.position).length() < Constants.SHEEP_NEIGHBOR_RADIUS:
@@ -39,40 +34,50 @@ class Sheep(Agent):
         # Reset
         alignment = Vector(0,0)
 
+        # Have sheep replicate each other's velocity
         for sheep in self.neighborhood:
             alignment += sheep.velocity
 
         # In case of no neighbors
-        if(self.neighborAmount == 0):
-            return alignment
-        else:
+        if self.neighborAmount > 0:
             return alignment.scale(1 / self.neighborAmount)
+        
+        return alignment
 
     def calculateCohesion(self, herd):
+        # Reset
         cohesion = Vector(0,0)
 
+        # Have sheep try to join in groups
         for sheep in self.neighborhood:
             cohesion += sheep.position
         
+        # if more than 0
         if self.neighborAmount > 0:
             cohesion = cohesion.scale(1 / self.neighborAmount) - self.center
 
         return cohesion
 
     def calculateSeperation(self, herd):
+        # Reset
         seperation = Vector(0,0)
 
+        # Don't let sheep overlap
         for sheep in self.neighborhood:
             seperation += self.center - sheep.position
 
-        if self.neighborAmount == 0:
-            return seperation
-        else:
+        # if more than 0
+        if self.neighborAmount > 0:
             return seperation.scale(1 / self.neighborAmount)
+        
+        return seperation
 
     def calculatePlayerFlee(self, player):
+        # Flee from player
         newVector = self.center - player.center
         self.target = player
+
+        # Only do so when in range
         if newVector.length() < Constants.MIN_ATTACK_DIST:
             self.isFleeing = True
             return newVector
@@ -81,6 +86,7 @@ class Sheep(Agent):
         return Vector(0,0)
 
     def calculateBoundaries(self, bounds):
+        # reset
         boundsStrength = Vector(0,0)
         self.boundaries = []
 
@@ -118,10 +124,10 @@ class Sheep(Agent):
         self.target = newTarget
 
     def update(self, bounds, player, clock, herd):
-        
+        # Check the current neighborhood
         self.calculateNeighborhood(herd)
 
-
+        # Normalize each force
         dogStrength = self.calculatePlayerFlee(player)
         dogStrength = dogStrength.normalize()
 
@@ -137,15 +143,17 @@ class Sheep(Agent):
         seperation = self.calculateSeperation(herd)
         seperation = seperation.normalize()
 
-
+        # Add all forces, scaled
         direction = dogStrength.scale(Constants.SHEEP_DOG_WEIGHT * Constants.ENABLE_DOG) + boundaryStrength.scale(Constants.SHEEP_BOUNDARY_WEIGHT * Constants.ENABLE_BOUNDARIES) \
             + alignment.scale(Constants.SHEEP_ALIGNMENT_WEIGHT * Constants.ENABLE_ALIGNMENT) + cohesion.scale(Constants.SHEEP_COHESION_WEIGHT * Constants.ENABLE_COHESION) \
             + seperation.scale(Constants.SHEEP_SEPERATION_WEIGHT * Constants.ENABLE_SEPARATION)
         
+        # Normalize and update
         direction = direction.normalize()
         self.updateVelocity(direction)
-        self.speed = self.maximumSpeed
         
+        super().update(bounds, clock, [player] + [herd])
+
         # Find player
         #self.target = player.position
         #self.isPlayerClose()
@@ -157,7 +165,6 @@ class Sheep(Agent):
         #    velPerp = Vector((self.velocity.y * -1), self.velocity.x).scale(.1)
         #    velPerp = velPerp.scale(random.uniform(-1,1))
         #    self.direction = self.velocity + velPerp
-        super().update(bounds, clock, [player] + [herd])
 
     def draw(self, screen):
         if self.isFleeing == True and Constants.DEBUG_DOG_INFLUENCE:
@@ -167,11 +174,13 @@ class Sheep(Agent):
             #pygame.draw.line(screen, (0,255,0), self.center.tuple() ,self.target.tuple(),1 )
 
         if Constants.DEBUG_NEIGHBORS:
+            # Draw a line to the neighbors
             for sheep in self.neighborhood:
                 pygame.draw.line(screen, (0,0,255), (self.center.x, self.center.y),
                                  (sheep.center.x, sheep.center.y), Constants.DEBUG_LINE_WIDTH)
 
         if Constants.DEBUG_BOUNDARIES:
+            # Draw a line to the boundaries
             for boundary in self.boundaries:
                 pygame.draw.line(screen, (255, 0, 255), (self.center.x, self.center.y),
                                  (boundary.x, boundary.y), Constants.DEBUG_LINE_WIDTH)

@@ -18,8 +18,13 @@ class Player(Agent):
         # Choose target randomly
         if self.targetAgent == None:
             self.targetAgent = random.choice(shaunAndFriends)
-        self.target = self.targetAgent.position
-        self.direction = self.target - self.position
+        
+        # Set direction
+        self.target = self.targetAgent.center
+        direction = self.target - self.center
+        direction = direction.normalize()
+        self.updateVelocity(direction)
+
         # Change target
         test = super().isInCollision(self.targetAgent)
         if test == True:

@@ -9,42 +9,37 @@ class Agent:
     def __init__(self, position, size, speed, image, turnSpeed):
         self.position = position
         self.size = size
-        self.maximumSpeed = speed
-        self.speed = 0
+        self.speed = speed
         self.image = image
         self.turnSpeed = turnSpeed
         self.velocity = Vector(random.random() - 0.5, random.random() - .5).normalize()
         self.target = Vector(0,0)
         self.targetVelocity = self.velocity
         self.boundingRect = pygame.Rect(0,0,0,0)
-        #self.updateRect()
         self.center = position + size.scale(0.5)
         self.angle =0
         self.upperLeft = position
         self.calculateSurface()
-        #self.surf = None
-        #self.boundryForces = Vector(0, 0)
-        #self.boundryList = []
-        #self.weightToUse = 1
-        #self.currentDirection =  Vector(0,0)
 
     def __str__(self):
         # Override string
         return (f"Player Size: {str(self.size)}	Position: {str(self.position)}	Velocity: {str(self.velocity)}	Center: {str(self.center)}")
 
     def calculateSurface(self):
+        # Check the current surface of the image
         self.surf = pygame.transform.rotate(self.image, self.angle)
         self.upperLeft = self.center - Vector(self.surf.get_width(), self.surf.get_height()).scale(.5)
         self.boundingRect = self.surf.get_bounding_rect().move(self.upperLeft.x, self.upperLeft.y)
 
 
     def updateVelocity(self, velocity):
-        # Recieve new velocity and normalize it
-        #self.velocity = velocity.normalize()
+        # Recieve new velocity and normalize it=
         self.targetVelocity = velocity.normalize()
 
     def moveTowardsTarget(self):
+        # Determine distance from target
         velocityDifference = self.targetVelocity - self.velocity
+        # Check for smoother turning
         if (velocityDifference.length() < self.turnSpeed):
             self.velocity = self.targetVelocity
         else:
@@ -52,11 +47,12 @@ class Agent:
         self.velocity = self.velocity.normalize()
 
     def updateRect(self):
+        # update the rect
         self.rect = self.boundingRect
 
-    #def updateCenter(self):
-    #    # Find the center of the object
-    #    self.center = self.position + Vector((self.size / 2),(self.size /2))
+    def updateCenter(self):
+        # Find the center of the object
+        self.center = self.position + Vector((self.size / 2),(self.size /2))
 
     def isInCollision(self, agent):
         # Check if self is colliding with another agent
@@ -66,57 +62,32 @@ class Agent:
             return False
 
     def update(self, bounds, clock, Agents):
+        # Update target
         self.moveTowardsTarget()
         self.center = self.center + self.velocity.scale(self.speed)
         
-
-
+        # Update Center
         self.center.x = max(self.boundingRect.width * .5, min(self.center.x,  bounds.x - self.boundingRect.width * .5))
         self.center.y = max(self.boundingRect.height * .5, min(self.center.y, bounds.y - self.boundingRect.height * .5))
 
-        
-
         self.calculateSurface()
-
         
-        ## Debug for no surface
-        #if self.surf != None:
-        #    self.boundingRect = self.surf.get_bounding_rect()
-        #    self.boundingRect = self.boundingRect.move(self.center.x - Constants.AGENT_WIDTH /2, self.center.y - Constants.AGENT_HEIGHT /2)
-
-        ## Add direction force and boundry force
-        #self.getBorderForce()
-        #self.direction = self.modifyForce(self.direction, self.weightToUse)
-        #self.boundryForces = self.modifyForce(self.boundryForces, Constants.BOUNDRY_WEIGHT)
-        #targetDirection = self.direction + self.boundryForces
-        #if clock.get_time() != 0:
-        #    targetDirection = targetDirection.scale(clock.get_time() / 100)
-        #targetDirection = targetDirection.scale(self.speed)
-
-        #self.finalPosition(targetDirection)
-        #self.updateCenter()
 
     def draw(self, screen):
-        
 
         # Draw Image
-        #self.angle = math.atan2(-self.velocity.x, -self.velocity.y)
         self.angle = math.degrees(math.atan2(-self.velocity.y, self.velocity.x)) - 90
-        #self.surf = pygame.transform.rotate(self.image, self.angle)
-        #upperLeft = Vector((self.center.x - self.surf.get_width() / 2), (self.center.y - self.surf.get_height() /2))
         screen.blit(self.surf, [self.upperLeft.x, self.upperLeft.y])
 
-
+        # Draw black box for bounding
         if Constants.DEBUG_BOUNDING_RECTS:
             pygame.draw.rect(screen,(0,0,0), self.boundingRect, Constants.DEBUG_LINE_WIDTH)
 
         if Constants.DEBUG_VELOCITY:
-        # Draw a line showing the expected velocity Blue
+        # Draw a line showing the expected velocity Green
             pygame.draw.line(screen, (0,255, 0), self.center.tuple() ,(self.center + self.velocity.scale(20)).tuple(),Constants.DEBUG_LINE_WIDTH )
 
-        # Draw each boundry force line Fuchia
-        #for force in self.boundryList:
-        #    pygame.draw.line(screen, (255, 0, 255), self.center.tuple(), force.tuple(), 3)
+        
     
     def modifyForce(self, appliedForce, weight):
         # modify force

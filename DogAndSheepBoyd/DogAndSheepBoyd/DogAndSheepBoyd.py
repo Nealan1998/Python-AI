@@ -23,10 +23,11 @@ bounds = Vector(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
 # Set the player with a position
 hankTheCowdog = Player(Constants.SCREEN_SIZE.scale(1/2), Constants.PLAYER_SIZE, Constants.PLAYER_SPEED, dogImage, Constants.PLAYER_TURN_SPEED)
 
-# Set enemies with random positions
+# Set A LOT of sheep with random positions
 shaunAndFriends = []
-for shaun in range(20):
-	shaunAndFriends.append(Sheep(Vector(random.randint(0, Constants.WORLD_WIDTH), random.randint(0, Constants.WORLD_HEIGHT)), Constants.ENEMY_SIZE, Constants.ENEMY_SPEED, sheepImage, Constants.SHEEP_TURN_SPEED))
+for shaun in range(100):
+	shaunAndFriends.append(Sheep(Vector(random.randint(0, Constants.WORLD_WIDTH), random.randint(0, Constants.WORLD_HEIGHT)), \
+                              Constants.ENEMY_SIZE, Constants.ENEMY_SPEED, sheepImage, Constants.SHEEP_TURN_SPEED))
 
 clock = pygame.time.Clock()
 

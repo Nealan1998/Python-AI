@@ -17,7 +17,7 @@ class Player(Agent):
 
 	def __init__(self, image, position, size, color, speed, angularSpeed):
 		super().__init__(image, position, size, color, speed, angularSpeed)
-		self.searchType = SearchType.A_STAR
+		self.searchType = SearchType.DJIKSTRA
 		self.gateNumber = 0
 		self.isFollowingPath = False
 		self.path = []

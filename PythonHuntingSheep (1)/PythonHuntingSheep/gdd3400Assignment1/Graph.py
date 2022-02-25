@@ -112,7 +112,30 @@ class Graph():
 		print("BREADTH-FIRST")
 		self.reset()
 
-		# TODO: Add your breadth-first code here!
+		startNode = self.getNodeFromPoint(start)
+		endNode = self.getNodeFromPoint(end)
+		# Set the lists and currentNode
+		curNode = startNode
+		startNode.isVisited = True
+		toVisit = [startNode]
+		visited = []
+		
+		# Keep going until list is empty
+		while len(toVisit) != 0:
+			# Set the current node and count it visited
+			currNode = toVisit.pop(0)
+			currNode.isExplored= True
+			visited.append(currNode)
+			# Check all neighbors
+			for nextNode in currNode.neighbors:
+				if nextNode.isVisited == False:
+					# Add to node to visit and update information
+					toVisit.append(nextNode)
+					nextNode.isVisited = True
+					nextNode.backNode = currNode
+					# Final Path
+					if (nextNode == endNode):
+						return self.buildPath(nextNode)
 
 		return []
 
@@ -122,6 +145,47 @@ class Graph():
 		self.reset()		
 
 		# TODO: Add your Djikstra code here!
+		# Set up everything
+		startNode = self.getNodeFromPoint(start)
+		endNode = self.getNodeFromPoint(end)
+		curNode = startNode
+		startNode.isVisited = True
+		pqueue = [startNode]
+
+		startNode.costFromStart = 0
+		startNode.costToEnd = 0
+		startNode.cost = 0
+
+		while len(pqueue) != 0:
+			# pop the currNode off
+			curNode = pqueue.pop(0)
+			curNode.isExplored = True
+			# Check if node is endNode
+			if curNode == endNode:
+				return self.buildPath(curNode)
+			# Check each neighbor
+			for nextNode in curNode.neighbors:
+				curDistance = (curNode.center - nextNode.center).length()
+				# handle unvisited node
+				if nextNode.isVisited == False:
+					nextNode.isVisited = True
+					nextNode.costFromStart = curDistance + curNode.costFromStart
+					nextNode.costToEnd = 0
+					nextNode.cost = nextNode.costFromStart + nextNode.costToEnd
+					nextNode.backNode = curNode
+					pqueue.append(nextNode)
+				# Handle visited node
+				else:
+					#ne
+					newCostFromStart = curNode.costFromStart + curDistance
+					newCostToEnd = 0 #curNode.costToEnd + curDistance
+					newCost = newCostFromStart + newCostToEnd
+					if (newCost < nextNode.cost):
+						nextNode.costFromStart = newCostFromStart
+						nextNode.costToEnd = newCostToEnd
+						nextNode.cost = newCost
+						nextNode.backNode = curNode
+			pqueue.sort(key=lambda x:x.cost)
 
 		return []
 

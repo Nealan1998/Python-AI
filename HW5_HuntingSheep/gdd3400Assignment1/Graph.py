@@ -194,6 +194,17 @@ class Graph():
 		""" A Star Search """
 		print("A_STAR")
 		self.reset()
+		
+		# Set up everything
+		startNode = self.getNodeFromPoint(start)
+		endNode = self.getNodeFromPoint(end)
+		curNode = startNode
+		startNode.isVisited = True
+		pqueue = [startNode]
+
+		startNode.costFromStart = 0
+		startNode.costToEnd = 0
+		startNode.cost = 0
 
 		# TODO: Implement A Star Search
 		
@@ -205,7 +216,43 @@ class Graph():
 		print("BEST_FIRST")
 		self.reset()
 
+		# Set up everything
+		startNode = self.getNodeFromPoint(start)
+		endNode = self.getNodeFromPoint(end)
+		curNode = startNode
+		startNode.isVisited = True
+		pqueue = [startNode]
+
+		startNode.costFromStart = 0
+		startNode.costToEnd = 0
+		startNode.cost = 0
+
 		# TODO: Implement Best First Search
+		while len(pqueue) != 0:
+			# pop the currNode off
+			curNode = pqueue.pop(0)
+			curNode.isExplored = True
+			# Check if node is endNode
+			if curNode == endNode:
+				return self.buildPath(curNode)
+			# Check each neighbor
+			for nextNode in curNode.neighbors:
+				curDistance = (curNode.center - nextNode.center).length()
+				# handle unvisited node
+				if nextNode.isVisited == False:
+					nextNode.isVisited = True
+					nextNode.cost = (curNode.center - nextNode.center).length()
+					nextNode.backNode = curNode
+					pqueue.append(nextNode)
+				# Handle visited node
+				else:
+					newCost = (curNode.center - nextNode.center).length()
+					if (newCost < nextNode.cost):
+						nextNode.cost = newCost
+						nextNode.backNode = curNode
+			#pqueue.sort(key=lambda x:x.cost)
+
+		
 		
 		# Return empty path indicating no path was found
 		return []

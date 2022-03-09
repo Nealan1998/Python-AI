@@ -2,6 +2,7 @@ import Constants
 import Node
 import pygame
 import Vector
+import random
 
 from pygame import *
 from Vector import *
@@ -110,6 +111,9 @@ class Graph():
 	def findPath_Breadth(self, start, end):
 		""" Breadth Search """
 		print("BREADTH")
+		funny = random.randint(0,15)
+		if funny == 0:
+			print("IF YOU CAN READ THIS, YOU'RE TOO CLOSE")
 		self.reset()
 
 		startNode = self.getNodeFromPoint(start)
@@ -143,6 +147,9 @@ class Graph():
 	def findPath_Djikstra(self, start, end):
 		""" Djikstra's Search """
 		print("DJIKSTRA")
+		funny = random.randint(0,15)
+		if funny == 0:
+			print("IF YOU CAN READ THIS, YOU'RE TOO CLOSE")
 		self.reset()
 
 		# Set up everything
@@ -168,6 +175,7 @@ class Graph():
 				curDistance = (curNode.center - nextNode.center).length()
 				# handle unvisited node
 				if nextNode.isVisited == False:
+					# Check cost from start
 					nextNode.isVisited = True
 					nextNode.costFromStart = curDistance + curNode.costFromStart
 					nextNode.costToEnd = 0
@@ -176,9 +184,9 @@ class Graph():
 					pqueue.append(nextNode)
 				# Handle visited node
 				else:
-					#ne
+					# Compare costs from start
 					newCostFromStart = curNode.costFromStart + curDistance
-					newCostToEnd = 0 #curNode.costToEnd + curDistance
+					newCostToEnd = 0
 					newCost = newCostFromStart + newCostToEnd
 					if (newCost < nextNode.cost):
 						nextNode.costFromStart = newCostFromStart
@@ -193,6 +201,9 @@ class Graph():
 	def findPath_AStar(self, start, end):
 		""" A Star Search """
 		print("A_STAR")
+		funny = random.randint(0,15)
+		if funny == 0:
+			print("IF YOU CAN READ THIS, YOU'RE TOO CLOSE")
 		self.reset()
 		
 		# Set up everything
@@ -206,14 +217,59 @@ class Graph():
 		startNode.costToEnd = 0
 		startNode.cost = 0
 
-		# TODO: Implement A Star Search
-		
+
+		while len(pqueue) != 0:
+			# pop the currNode off
+			curNode = pqueue.pop(0)
+			curNode.isExplored = True
+			# Check if node is endNode
+			if curNode == endNode:
+				return self.buildPath(curNode)
+			# Check each neighbor
+			for nextNode in curNode.neighbors:
+				curDistance = (curNode.center - nextNode.center).length()
+				# handle unvisited node
+				if nextNode.isVisited == False:
+					# Check cost from start
+					nextNode.isVisited = True
+
+					# Calculate Djikstra
+					nextNode.costFromStart = curDistance + curNode.costFromStart
+					nextNode.costToEnd = 0
+					dCost = nextNode.costFromStart + nextNode.costToEnd
+
+					# Calculate Best and add to Djikstra
+					bCost = (nextNode.center - endNode.center).length()
+					nextNode.cost = dCost + bCost
+					nextNode.backNode = curNode
+					pqueue.append(nextNode)
+				# Handle visited node
+				else:
+					# Compare costs from start
+					# Calculate Djikstra
+					newCostFromStart = curNode.costFromStart + curDistance
+					newCostToEnd = 0
+					newDCost = newCostFromStart + newCostToEnd
+
+					# Calculate Best and add to Djikstra
+					newBCost = (nextNode.center + endNode.center).length()
+					newCost = newDCost + newBCost
+					if (newCost < nextNode.cost):
+						nextNode.costFromStart = newCostFromStart
+						nextNode.costToEnd = newCostToEnd
+						nextNode.cost = newCost
+						nextNode.backNode = curNode
+			pqueue.sort(key=lambda x:x.cost)
+
 		# Return empty path indicating no path was found
 		return []
 
 	def findPath_BestFirst(self, start, end):
 		""" Best First Search """
 		print("BEST_FIRST")
+		funny = random.randint(0,15)
+		if funny == 0:
+			print("IF YOU CAN READ THIS, YOU'RE TOO CLOSE")
 		self.reset()
 
 		# Set up everything
@@ -227,30 +283,7 @@ class Graph():
 		startNode.costToEnd = 0
 		startNode.cost = 0
 
-		# TODO: Implement Best First Search
 		while len(pqueue) != 0:
-			# pop the currNode off
-			#curNode = pqueue.pop(0)
-			#curNode.isExplored = True
-			# Check if node is endNode
-			#if curNode == endNode:
-			#	return self.buildPath(curNode)
-			# Check each neighbor
-			#for nextNode in curNode.neighbors:
-			#	curDistance = (curNode.center - nextNode.center).length()
-			#	# handle unvisited node
-			#	if nextNode.isVisited == False:
-			#		nextNode.isVisited = True
-			#		nextNode.cost = (nextNode.center - curNode.center).length()
-			#		nextNode.backNode = curNode
-			#		pqueue.append(nextNode)
-				# Handle visited node
-			#	else:
-			#		if (curDistance < nextNode.cost):
-						#nextNode.costFromStart = newCostFromStart
-						#nextNode.costToEnd = newCostToEnd
-			#			nextNode.cost = 0
-						#nextNode.backNode = curNode
 
 			curNode = pqueue.pop(0)
 			curNode.isExplored = True
@@ -262,24 +295,16 @@ class Graph():
 				curDistance = (curNode.center - nextNode.center).length()
 				# handle unvisited node
 				if nextNode.isVisited == False:
+					# Get distance to the end
 					nextNode.isVisited = True
-					#nextNode.costFromStart = curDistance + curNode.costFromStart
-					#nextNode.costToEnd = 0
 					nextNode.cost = (nextNode.center - endNode.center).length()
 					nextNode.backNode = curNode
 					pqueue.append(nextNode)
 				# Handle visited node
 				else:
-				#	#ne
-				#newCostFromStart = curNode.costFromStart + curDistance
-				#	newCostToEnd = 0 #curNode.costToEnd + curDistance
-				#	newCost = newCostFromStart + newCostToEnd
-				#	newCostFromStart = curNode.costFromStart + curDistance
-				#	newCostToEnd = 0 #curNode.costToEnd + curDistance
+					# Compare distances to end
 					newCost = (nextNode.center - endNode.center).length()
 					if (newCost < nextNode.cost):
-				#		nextNode.costFromStart = newCostFromStart
-				#		nextNode.costToEnd = newCostToEnd
 						nextNode.cost = newCost
 						nextNode.backNode = curNode
 			pqueue.sort(key=lambda x:x.cost)

@@ -67,12 +67,13 @@ class FindSheepState(State):
 		dog = gameState.getDog()
 
 		# Pick a random sheep
-		dog.setTargetSheep(gameState.getHerd()[0])
+		dog.setTargetSheep(gameState.getHerd()[0] )
 
 		# You could add some logic here to pick which state to go to next
 		# depending on the gameState
-
-		dog.calculatePathToNewTarget(dog.getTargetSheep().center)
+		newCenter = dog.getTargetSheep().center
+		newCenter = newCenter + dog.additionVector
+		dog.calculatePathToNewTarget(newCenter)# + self.additionVector)
 
 
 		return Idle()
@@ -85,6 +86,39 @@ class Idle(State):
 		
 		# Do nothing
 		if len(gameState.getHerd()) > 0:
-			return FindSheepState()
+			return DetermineDirectionState()
 		else:
 			return Idle()
+
+class DetermineDirectionState(State):
+
+	def update(self, gameState):
+		super().update(gameState)
+		dog = gameState.getDog()
+		dog.additionVector = Vector(0,0)
+
+		centerToCheck = dog.getTargetSheep().center;
+
+		penMinX = Constants.PEN[0][0][0]
+		penMaxX = Constants.PEN[0][1][0]
+		penCenter = (penMinX + penMaxX) / 2
+		penY = Constants.PEN[0][0][1]
+		
+		# If sheep is below the gate
+		if centerToCheck.y > penY:
+			dog.additionVector = Vector(0, Constants.SHEEP_HEIGHT)
+		# If sheep is left of gate
+		elif centerToCheck.y < penY and centerToCheck.x < penMinX:
+			dog.additionVector = Vector(Constants.SHEEP_WIDTH * -1, 0)#Constants.SHEEP_HEIGHT )
+		# If sheep is right of gate
+		elif centerToCheck.y < penY and centerToCheck.x > penMaxX:
+			dog.additionVector = Vector(Constants.SHEEP_WIDTH, 0)# Constants.SHEEP_HEIGHT )
+		# If sheep is above gate on left side
+		elif centerToCheck.y < penY and centerToCheck.x > penMinX and centerToCheck.x < penCenter:
+			dog.additionVector = Vector(Constants.SHEEP_WIDTH * -2, Constants.SHEEP_HEIGHT *-2)
+		# If sheep is above gate on right side
+		elif centerToCheck.y < penY and centerToCheck.x < penMaxX and centerToCheck.x > penCenter:
+			dog.additionVector = Vector(Constants.SHEEP_WIDTH * 2 , Constants.SHEEP_HEIGHT * -2)
+
+
+		return FindSheepState()

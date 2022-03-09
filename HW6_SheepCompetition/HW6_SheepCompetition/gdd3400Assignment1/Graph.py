@@ -131,13 +131,6 @@ class Graph():
 		#print("A_STAR")
 		self.reset()
 
-		return []
-
-	def findPath_BestFirst(self, start, end):
-		""" Best First Search """
-		#print("BEST_FIRST")
-		self.reset()
-		
 		# Set up everything
 		startNode = self.getNodeFromPoint(start)
 		endNode = self.getNodeFromPoint(end)
@@ -192,6 +185,13 @@ class Graph():
 						nextNode.cost = newCost
 						nextNode.backNode = curNode
 			pqueue.sort(key=lambda x:x.cost)
+		return []
+
+	def findPath_BestFirst(self, start, end):
+		""" Best First Search """
+		#print("BEST_FIRST")
+		self.reset()
+		
 		return []
 
 	def draw(self, screen):
